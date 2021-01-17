@@ -17,10 +17,13 @@ from functools import wraps
 from serial_asyncio import create_serial_connection
 
 import Utils
+from ui_files import resources
 
 '''
 Coroutines taken from turbohostlink
 '''
+
+
 def display_error(err):
     app = QApplication.instance()
     window = app.activeWindow()
@@ -28,6 +31,7 @@ def display_error(err):
     dialog.setWindowModality(Qt.WindowModal)
     dialog.setWindowTitle("Error")
     dialog.showMessage(err)
+
 
 def slot_coroutine(async_func):
     if not asyncio.iscoroutinefunction(async_func):
@@ -48,10 +52,10 @@ def slot_coroutine(async_func):
     return wrapper
 
 
-
 '''
 Thread to record video
 '''
+
 
 class VideoThread(threading.Thread):
 
@@ -82,9 +86,11 @@ def grabFrame(camera):
     image = cv2.flip(image, 1)
     window.lbl_image.setPixmap(Utils.img2map(image))
 
+
 def startVideo():
     global videoThread
     videoThread = VideoThread(int(window.combo_indice_camera.currentText()))
+    videoThread.setDaemon(True)
     videoThread.start()
     window.btn_start.setEnabled(False)
     window.btn_stop.setEnabled(True)
@@ -96,21 +102,24 @@ def stopVideo():
         videoThread.stop()
     window.btn_start.setEnabled(True)
     window.btn_stop.setEnabled(False)
-    window.lbl_image.setPixmap(QPixmap("ui_files/black.png"))
+    window.lbl_image.setPixmap(QPixmap("ui_files/images/black.png"))
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self,loop):
+    def __init__(self, loop):
         super(MainWindow, self).__init__()
         uic.loadUi("ui_files/MainWindow.ui", self)
         self.setWindowTitle("Manual Remote Control")
-        self.setWindowIcon(QIcon("ui_files/ipca.png"))
-        self.lbl_image.setPixmap(QPixmap("ui_files/black.png"))
+        self.setWindowIcon(QIcon(":/icon/images/ipca.png"))
+        self.lbl_image.setPixmap(QPixmap(":/icon/images/black.png"))
         self.lbl_image.setScaledContents(True)
 
-        #setup hostlink
-        self.loop = loop
+        self.lbl_estado_massa.setPixmap(QPixmap(":/state_lights/images/green.png"))
+        self.lbl_estado_recheio.setPixmap(QPixmap(":/state_lights/images/green.png"))
+        self.lbl_estado_temperatura.setPixmap(QPixmap(":/state_lights/images/green.png"))
 
+        # setup hostlink
+        self.loop = loop
 
         # signals & slots
         self.btn_start.clicked.connect(startVideo)
@@ -128,12 +137,12 @@ class MainWindow(QtWidgets.QMainWindow):
     async def send_message(self):
         msg = self.output_field.text()
         await self.port.send(msg)
-        #msg = msg.rstrip('\r')
-        #self.response_field.appendPlainText(f"PC -> {msg}")
+        # msg = msg.rstrip('\r')
+        # self.response_field.appendPlainText(f"PC -> {msg}")
 
     def recv_message(self, msg):
         msg = msg.rstrip('\r')
-        #self.response_field.appendPlainText(f"PLC -> {msg}")
+        # self.response_field.appendPlainText(f"PLC -> {msg}")
 
     @slot_coroutine
     async def open_port(self):
@@ -157,23 +166,22 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.btn_connect.setDisabled(True)
         self.btn_disconnect.setDisabled(False)
-        #self.send_button.setDisabled(False)
+        # self.send_button.setDisabled(False)
 
     def close_port(self):
         self.loop.stop()
         self.btn_connect.setDisabled(False)
         self.btn_disconnect.setDisabled(True)
-        #self.send_button.setDisabled(True)
-
+        # self.send_button.setDisabled(True)
 
 
 if __name__ == "__main__":
     print('Loading user interface...')
     QApp = QtWidgets.QApplication(sys.argv)
+    resources.qInitResources()
     QApp.setStyle("Fusion")
 
     loop = QEventLoop(QApp)
-
 
     window = MainWindow(loop)
     window.show()
@@ -184,4 +192,4 @@ if __name__ == "__main__":
     videoThread = None
     print("All initialized")
 
-    sys.exit(QApp.exec())
+    sys.exit(QApp.exec_) #app was not being termianted correctly with sys.exit(QApp.exec())

@@ -14,16 +14,19 @@ def img2map(image):
     pixmap = QPixmap.fromImage(qimage)
     return pixmap
 
+
 def compute_fcs(msg):
     return format(reduce(xor, map(ord, msg)), 'x')
 
-def HLNK_calculate_frame(node,header,data):
+
+def HLNK_calculate_frame(node, header, data):
     message = f'@{node}{header}{data}'
     fcs = compute_fcs(message)
     terminator = '*\r'
     fullmsg = message + fcs + terminator
     print(fullmsg)
     return fullmsg
+
 
 def list_ports():
     '''
@@ -48,9 +51,12 @@ def list_ports():
         dev_port += 1
     return working_ports
 
+
 '''
 Class and setup for serial comms
 '''
+
+
 def setup_serial(item):
     for port in comports(include_links=False):
         item.combo_comport.addItem(f"{port[0]} {port.description}", port)

@@ -19,7 +19,7 @@
   <property name="maximumSize">
    <size>
     <width>800</width>
-    <height>600</height>
+    <height>1025</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -48,7 +48,10 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
+      </property>
+      <property name="elideMode">
+       <enum>Qt::ElideLeft</enum>
       </property>
       <widget class="QWidget" name="tab_controlo">
        <attribute name="title">
@@ -94,11 +97,34 @@
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_3">
                <item>
-                <widget class="QLabel" name="lbl_cookie_status">
-                 <property name="text">
-                  <string/>
-                 </property>
-                </widget>
+                <layout class="QVBoxLayout" name="verticalLayout_6">
+                 <item>
+                  <widget class="QPushButton" name="btn_bolacha_ok">
+                   <property name="font">
+                    <font>
+                     <family>Rockwell</family>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>OK</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_bolacha_not_ok">
+                   <property name="font">
+                    <font>
+                     <family>Rockwell</family>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>NOT OK</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
               </layout>
              </widget>
@@ -139,9 +165,21 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLabel" name="lbl_estad_massa">
+                   <widget class="QLabel" name="lbl_estado_massa">
                     <property name="text">
                      <string/>
+                    </property>
+                    <property name="pixmap">
+                     <pixmap>:/state_lights/green.png</pixmap>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>false</bool>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>false</bool>
+                    </property>
+                    <property name="openExternalLinks">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -161,6 +199,9 @@
                     <property name="text">
                      <string/>
                     </property>
+                    <property name="pixmap">
+                     <pixmap>:/state_lights/yellow.png</pixmap>
+                    </property>
                    </widget>
                   </item>
                  </layout>
@@ -178,6 +219,54 @@
                    <widget class="QLabel" name="lbl_estado_temperatura">
                     <property name="text">
                      <string/>
+                    </property>
+                    <property name="pixmap">
+                     <pixmap>:/state_lights/red.png</pixmap>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="frame_2">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_16">
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout">
+                  <item>
+                   <widget class="QLabel" name="label_16">
+                    <property name="font">
+                     <font>
+                      <family>Rockwell</family>
+                      <pointsize>14</pointsize>
+                     </font>
+                    </property>
+                    <property name="autoFillBackground">
+                     <bool>false</bool>
+                    </property>
+                    <property name="text">
+                     <string>Estado Atual</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="lbl_estado_atual">
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
                     </property>
                    </widget>
                   </item>
@@ -221,9 +310,16 @@
       </widget>
       <widget class="QWidget" name="tab_manutencao">
        <attribute name="title">
-        <string>Manutenção</string>
+        <string>Manual</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_11">
+       <layout class="QVBoxLayout" name="verticalLayout_17">
+        <item>
+         <widget class="Line" name="line_5">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
@@ -264,6 +360,13 @@
            </layout>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="Line" name="line_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -307,18 +410,25 @@
          </layout>
         </item>
         <item>
+         <widget class="Line" name="line_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Entrada forno</string>
+             <string>Tapete</string>
             </property>
            </widget>
           </item>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_8">
             <item>
-             <widget class="QPushButton" name="btn_ativar_entrada_forno">
+             <widget class="QPushButton" name="btn_ativar_tapete">
               <property name="font">
                <font>
                 <family>Rockwell</family>
@@ -331,7 +441,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="btn_desativar_entrada_forno">
+             <widget class="QPushButton" name="btn_desativar_tapete">
               <property name="font">
                <font>
                 <family>Rockwell</family>
@@ -346,6 +456,13 @@
            </layout>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="Line" name="line_7">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -389,18 +506,25 @@
          </layout>
         </item>
         <item>
+         <widget class="Line" name="line_8">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_7">
           <item>
            <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>Seleção bolacha</string>
+             <string>Separador</string>
             </property>
            </widget>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_6">
+           <layout class="QVBoxLayout" name="verticalLayout_11">
             <item>
-             <widget class="QPushButton" name="btn_bolacha_ok">
+             <widget class="QPushButton" name="btn_ativar_separador">
               <property name="font">
                <font>
                 <family>Rockwell</family>
@@ -408,12 +532,12 @@
                </font>
               </property>
               <property name="text">
-               <string>OK</string>
+               <string>Ativar</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="btn_bolacha_not_ok">
+             <widget class="QPushButton" name="btn_desativar_separador">
               <property name="font">
                <font>
                 <family>Rockwell</family>
@@ -421,11 +545,111 @@
                </font>
               </property>
               <property name="text">
-               <string>NOT OK</string>
+               <string>Desativar</string>
               </property>
              </widget>
             </item>
            </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Manutenção</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_18">
+        <item>
+         <widget class="Line" name="line_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_20">
+          <item>
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>Horas de trabalho</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lbl_horas_trabalho">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="Line" name="line">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_21">
+          <item>
+           <widget class="QLabel" name="label_18">
+            <property name="text">
+             <string>Número de descargas Massa</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lbl_numero_descargas_massa">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="Line" name="line_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_22">
+          <item>
+           <widget class="QLabel" name="label_19">
+            <property name="text">
+             <string>Número descargas Recheio</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lbl_numero_descargas_recheio">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -670,6 +894,8 @@
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
