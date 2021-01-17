@@ -17,10 +17,10 @@ from functools import wraps
 from serial_asyncio import create_serial_connection
 
 import Utils
+
 '''
 Coroutines taken from turbohostlink
 '''
-
 def display_error(err):
     app = QApplication.instance()
     window = app.activeWindow()
@@ -28,7 +28,6 @@ def display_error(err):
     dialog.setWindowModality(Qt.WindowModal)
     dialog.setWindowTitle("Error")
     dialog.showMessage(err)
-
 
 def slot_coroutine(async_func):
     if not asyncio.iscoroutinefunction(async_func):
@@ -48,10 +47,11 @@ def slot_coroutine(async_func):
 
     return wrapper
 
+
+
 '''
 Thread to record video
 '''
-
 
 class VideoThread(threading.Thread):
 
@@ -81,7 +81,6 @@ def grabFrame(camera):
     ret, image = camera.read()
     image = cv2.flip(image, 1)
     window.lbl_image.setPixmap(Utils.img2map(image))
-
 
 def startVideo():
     global videoThread
