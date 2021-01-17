@@ -29,6 +29,7 @@ def HLNK_calculate_frame(node, cmd, data):
 
 #make plc enter monitor mode
 def plc_monitor_mode_msg(app):
+    app.txt_logger.append("PLC Monitor Mode:")
     app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "SC", "02")
     app.send_message()
 
@@ -37,6 +38,7 @@ def plc_modo_automatico_msg(stage, app, flag):
     mem_number = "0098"                                                 #memory number to be read written
     mem_pos = 0                                                         #memory position
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Automatic Mode:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()                                              #send reading command
         app.cur_fun_busy = True
@@ -62,6 +64,7 @@ def plc_dispensador_massa_msg(stage, app, flag):
     mem_number = "95"
     mem_pos = 0
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Dispensar Massa:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -87,6 +90,7 @@ def plc_dispensador_recheio_msg(stage, app, flag):
     mem_number = "0095"
     mem_pos = 1
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Dispensar Recheio:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -182,6 +186,12 @@ def plc_seletor_bolacha_msg(stage, app, flag):
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
+ #function to control ok and nok cookies
+def bolacha_insp(app,resultado):
+    plc_cookie_ok_nok(0,app,resultado)
+    plc_cookie_inspection_end(0,app,True)
+    time.sleep(0.1)
+    plc_cookie_inspection_end(0,app,False)
 
 def plc_cookie_ok_nok(stage, app, flag):
     mem_number = "0090"
@@ -232,6 +242,125 @@ def plc_cookie_inspection_end(stage, app, flag):
 
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
         app.send_message()
+
+'''
+Functions for maintenance
+'''
+
+def plc_work_hours(stage, app, flag):
+    mem_number = "00040002" #read 2 bytes
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_work_hours
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:13]
+        integer = int(data, 16)
+        if integer == 0:
+            integer = 1
+        app.lbl_horas_trabalho.setText(round(integer/60))
+
+def plc_counter_massa(stage, app, flag):
+    mem_number = "00000002" #read 2 bytes
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_counter_massa
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:13]
+        integer = int(data, 16)
+        app.lbl_numero_descargas_massa.setText(integer)
+
+def plc_counter_recheio(stage, app, flag):
+    mem_number = "00020002" #read 2 bytes
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_counter_recheio
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:13]
+        integer = int(data, 16)
+        app.lbl_numero_descargas_recheio.setText(integer)
+
+'''
+Function for normal modes
+'''
+def plc_current_state(stage, app, flag):
+    mem_number = "0000"
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_current_state
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:9]
+        integer = int(data, 16)
+        app.lbl_estado_atual.setText(integer)
+
+def plc_temperatura_forno(stage, app, flag):
+    mem_number = "0105"
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_temperatura_forno
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:9]
+        integer = int(data, 16)
+        app.lbl_valor_temperatura.setText(integer)
+
+def plc_alarmes(stage, app, flag):
+    mem_number = "0095" #read 2 bytes
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_alarmes
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:13]
+        integer = int(data, 16)
+        alarme_massa = pow(2, 5) & integer
+        alarme_recheio = pow(2, 6) & integer
+        ãlarme_temp = pow(2, 7) & integer
+        if alarme_massa > 0:
+            app.lbl_estado_massa.setPixmap(QPixmap(":/state_lights/images/red.png"))
+        else:
+            app.lbl_estado_massa.setPixmap(QPixmap(":/state_lights/images/green.png"))
+        if alarme_recheio > 0:
+            app.lbl_estado_recheio.setPixmap(QPixmap(":/state_lights/images/red.png"))
+        else:
+            app.lbl_estado_recheio.setPixmap(QPixmap(":/state_lights/images/green.png"))
+        if alarme_recheio > 0:
+            app.lbl_estado_temperatura.setPixmap(QPixmap(":/state_lights/images/red.png"))
+        else:
+            app.lbl_estado_temperatura.setPixmap(QPixmap(":/state_lights/images/green.png"))
 
 
 def list_ports():

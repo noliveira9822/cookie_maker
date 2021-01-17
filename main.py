@@ -110,8 +110,6 @@ def stopVideo():
     # serial tcommunitaction to disable automatic mode
     Utils.plc_modo_automatico_msg(0, window, 0)
 
-
-
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, loop):
         super(MainWindow, self).__init__()
@@ -138,41 +136,46 @@ class MainWindow(QtWidgets.QMainWindow):
         self.btn_start.clicked.connect(startVideo)
         self.btn_stop.clicked.connect(stopVideo)
         self.combo_indice_camera.addItems(Utils.list_ports())
+
+        self.btn_clear_log.clicked.connect(lambda: self.txt_logger.setText(""))
             #automatico
-        #self.btn_insp_ok.clicked.connect(self.bolacha_insp(True))
-        # self.btn_insp_nok.clicked.connect(self.bolacha_insp(False))
+        # the lambda is here because the function needs to be callable
+        self.btn_bolacha_ok.clicked.connect(lambda: Utils.bolacha_insp(self,True))
+        self.btn_bolacha_not_ok.clicked.connect(lambda: Utils.bolacha_insp(self,False))
             #serial
         Utils.setup_serial(self)
+
         self.btn_connect.clicked.connect(self.open_port)
         self.btn_disconnect.clicked.connect(self.close_port)
 
-            #manutençao
-        #self.btn_activar_massa.clicked.connect()
-        #self.btn_desactivar_massa.clicked.connect()
-        #self.btn_activar_recheio.clicked.connect()
-        #self.btn_desactivar_recheio.clicked.connect()
+            #manual
+        self.btn_activar_massa.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0,self,True))
+        self.btn_desactivar_massa.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0,self,False))
+        self.btn_ativar_recheio.clicked.connect(lambda: Utils.plc_dispensador_recheio_msg(0,self,True))
+        self.btn_desativar_recheio.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0,self,False))
+        self.btn_ativar_tapete.clicked.connect(lambda: Utils.plc_tapete_msg(0, self, True))
+        self.btn_desativar_tapete.clicked.connect(lambda: Utils.plc_tapete_msg(0, self, False))
+        self.btn_ativar_saida_forno.clicked.connect(lambda: Utils.plc_forno_msg(0, self, True))
+        self.btn_desativar_saida_forno.clicked.connect(lambda: Utils.plc_forno_msg(0, self, False))
+        self.btn_ativar_separador.clicked.connect(lambda: Utils.plc_seletor_bolacha_msg(0, self, True))
+        self.btn_desativar_separador.clicked.connect(lambda: Utils.plc_seletor_bolacha_msg(0, self, False))
+
         # show interface
         self.show()
-
-    #function to control ok and nok cookies
-    def bolacha_insp(self,resultado):
-        Utils.plc_cookie_ok_nok(0,self,resultado)
-        Utils.plc_cookie_inspection_end(0,self,True)
-        time.sleep(0.1)
-        Utils.plc_cookie_inspection_end(0,self,False)
 
     @slot_coroutine
     async def send_message(self):
         msg = self.message_to_send
         await self.port.send(msg)
-        #msg = msg.rstrip('\r')
-        #self.lbl_logger.setText(f"PC -> {msg}")
+        self.txt_logger.append("PC   --> " + msg.rstrip('\r'))
 
     def recv_message(self, msg):
         self.message_received = msg
         if self.cur_fun_callback is not None:
             self.cur_fun_callback(self.cur_fun_stage,self,self.cur_fun_flag)
-        #self.lbl_logger.setText(f"PLC -> {self.message_received}")
+            self.cur_fun_callback = None
+            self.cur_fun_stage = 0
+        self.txt_logger.append("PLC --> " + self.message_received)
 
     @slot_coroutine
     async def open_port(self):
@@ -212,8 +215,6 @@ if __name__ == "__main__":
     QApp.setStyle("Fusion")
 
     loop = QEventLoop(QApp)
-
-
     window = MainWindow(loop)
     window.show()
 
