@@ -88,6 +88,9 @@ def startVideo():
     videoThread.start()
     window.btn_start.setEnabled(False)
     window.btn_stop.setEnabled(True)
+    #serial test
+    Utils.plc_modo_automatico_msg(0, window, 1)
+
 
 
 def stopVideo():
@@ -97,6 +100,7 @@ def stopVideo():
     window.btn_start.setEnabled(True)
     window.btn_stop.setEnabled(False)
     window.lbl_image.setPixmap(QPixmap("ui_files/black.png"))
+    Utils.plc_modo_automatico_msg(0, window, 0)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -110,30 +114,51 @@ class MainWindow(QtWidgets.QMainWindow):
 
         #setup hostlink
         self.loop = loop
-
+        self.cur_fun_callback = None
+        self.message_received = ""
+        self.cur_fun_busy = False
+        self.cur_fun_stage = 0
+        self.cur_fun_flag = False
 
         # signals & slots
+            #camera
         self.btn_start.clicked.connect(startVideo)
         self.btn_stop.clicked.connect(stopVideo)
         self.combo_indice_camera.addItems(Utils.list_ports())
-
+            #automatico
+        #self.btn_insp_ok.clicked.connect(self.bolacha_insp(True))
+        # self.btn_insp_nok.clicked.connect(self.bolacha_insp(False))
+            #serial
         Utils.setup_serial(self)
         self.btn_connect.clicked.connect(self.open_port)
         self.btn_disconnect.clicked.connect(self.close_port)
 
+            #manutençao
+        #self.btn_activar_massa.clicked.connect()
+        #self.btn_desactivar_massa.clicked.connect()
+        #self.btn_activar_recheio.clicked.connect()
+        #self.btn_desactivar_recheio.clicked.connect()
         # show interface
         self.show()
 
+    def bolacha_insp(self,resultado):
+        Utils.plc_cookie_ok_nok(0,self,resultado)
+        Utils.plc_cookie_inspection_end(0,self,True)
+        time.sleep(0.1)
+        Utils.plc_cookie_inspection_end(0,self,False)
+
     @slot_coroutine
     async def send_message(self):
-        msg = self.output_field.text()
+        msg = self.message_to_send
         await self.port.send(msg)
         #msg = msg.rstrip('\r')
-        #self.response_field.appendPlainText(f"PC -> {msg}")
+        #self.lbl_logger.setText(f"PC -> {msg}")
 
     def recv_message(self, msg):
-        msg = msg.rstrip('\r')
-        #self.response_field.appendPlainText(f"PLC -> {msg}")
+        self.message_received = msg
+        if self.cur_fun_callback is not None:
+            self.cur_fun_callback(self.cur_fun_stage,self,self.cur_fun_flag)
+        #self.lbl_logger.setText(f"PLC -> {self.message_received}")
 
     @slot_coroutine
     async def open_port(self):
@@ -157,13 +182,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.btn_connect.setDisabled(True)
         self.btn_disconnect.setDisabled(False)
-        #self.send_button.setDisabled(False)
+
+        Utils.plc_monitor_mode_msg(window)
 
     def close_port(self):
         self.loop.stop()
         self.btn_connect.setDisabled(False)
         self.btn_disconnect.setDisabled(True)
-        #self.send_button.setDisabled(True)
 
 
 
@@ -174,14 +199,14 @@ if __name__ == "__main__":
 
     loop = QEventLoop(QApp)
 
-
     window = MainWindow(loop)
     window.show()
+
+    videoThread = None
+    print("All initialized")
 
     with loop:
         loop.run_forever()
     # creates global threads variables to be used through whole file
-    videoThread = None
-    print("All initialized")
 
     sys.exit(QApp.exec())

@@ -1,5 +1,6 @@
 import cv2
 import asyncio
+import time
 from PyQt5.QtGui import QImage, QPixmap
 from functools import reduce
 from operator import xor
@@ -14,16 +15,216 @@ def img2map(image):
     pixmap = QPixmap.fromImage(qimage)
     return pixmap
 
-def compute_fcs(msg):
-    return format(reduce(xor, map(ord, msg)), 'x')
 
-def HLNK_calculate_frame(node,header,data):
-    message = f'@{node}{header}{data}'
-    fcs = compute_fcs(message)
-    terminator = '*\r'
-    fullmsg = message + fcs + terminator
-    print(fullmsg)
+def compute_fcs(msg):
+    return format(reduce(xor, map(ord, msg)), 'X')
+
+
+def HLNK_calculate_frame(node, cmd, data):
+    header = "@"
+    fcs = compute_fcs(f'@{node}{cmd}{data}')
+    terminator = "*\r"
+    fullmsg = f"{header}{node}{cmd}{data}{fcs}{terminator}"
     return fullmsg
+
+
+def plc_monitor_mode_msg(app):
+    app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "SC", "02")
+    app.send_message()
+
+
+def plc_modo_automatico_msg(stage, app, flag):
+    mem_pos = 0
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "98")
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_modo_automatico_msg
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:9]
+        integer = int(data, 16)
+        mask = pow(2, mem_pos)
+        if flag == True:
+            integer = integer | mask
+        else:
+            integer = integer & ~mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "98" + format(integer, "X").zfill(4))
+        app.send_message()
+
+
+def plc_dispensador_massa_msg(stage, app, flag):
+    mem_pos = 0
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "95")
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_dispensador_massa_msg
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:9]
+        integer = int(data, 16)
+        mask = pow(2, mem_pos)
+        if flag == True:
+            integer = integer | mask
+        else:
+            integer = integer & ~mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "95" + format(integer, "X").zfill(4))
+        app.send_message()
+
+
+def plc_dispensador_recheio_msg(stage, app, flag):
+    mem_pos = 1
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "95")
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_dispensador_recheio_msg
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:9]
+        integer = int(data, 16)
+        mask = pow(2, mem_pos)
+        if flag == True:
+            integer = integer | mask
+        else:
+            integer = integer & ~mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "95" + format(integer, "X").zfill(4))
+        app.send_message()
+
+
+def plc_forno_msg(stage, app, flag):
+    mem_pos = 2
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "95")
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_forno_msg
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:9]
+        integer = int(data, 16)
+        mask = pow(2, mem_pos)
+        if flag == True:
+            integer = integer | mask
+        else:
+            integer = integer & ~mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "95" + format(integer, "X").zfill(4))
+        app.send_message()
+
+
+def plc_tapete_msg(stage, app, flag):
+    mem_pos = 4
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "95")
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_tapete_msg
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:9]
+        integer = int(data, 16)
+        mask = pow(2, mem_pos)
+        if flag == True:
+            integer = integer | mask
+        else:
+            integer = integer & ~mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "95" + format(integer, "X").zfill(4))
+        app.send_message()
+
+
+def plc_seletor_bolacha_msg(stage, app, flag):
+    mem_pos = 3
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "95")
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_seletor_bolacha_msg
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:9]
+        integer = int(data, 16)
+        mask = pow(2, mem_pos)
+        if flag == True:
+            integer = integer | mask
+        else:
+            integer = integer & ~mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "95" + format(integer, "X").zfill(4))
+        app.send_message()
+
+
+def plc_cookie_ok_nok(stage, app, flag):
+    mem_pos = 7
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "90")
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_cookie_ok_nok
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:9]
+        integer = int(data, 16)
+        mask = pow(2, mem_pos)
+        if flag == True:
+            integer = integer | mask
+        else:
+            integer = integer & ~mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   "90" + format(integer, "X").zfill(4))
+        app.send_message()
+
+
+def plc_cookie_inspection_end(stage, app, flag):
+    mem_pos = 8
+    if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "90")
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_cookie_inspection_end
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[5:9]
+        integer = int(data, 16)
+        mask = pow(2, mem_pos)
+        if flag == True:
+            integer = integer | mask
+        else:
+            integer = integer & ~mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "90" + format(integer, "X").zfill(4))
+        app.send_message()
+
 
 def list_ports():
     '''
@@ -48,9 +249,12 @@ def list_ports():
         dev_port += 1
     return working_ports
 
+
 '''
 Class and setup for serial comms
 '''
+
+
 def setup_serial(item):
     for port in comports(include_links=False):
         item.combo_comport.addItem(f"{port[0]} {port.description}", port)
