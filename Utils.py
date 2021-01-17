@@ -116,6 +116,7 @@ def plc_forno_msg(stage, app, flag):
     mem_number = "0095"
     mem_pos = 2
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Output Forno:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -141,6 +142,7 @@ def plc_tapete_msg(stage, app, flag):
     mem_number = "0095"
     mem_pos = 4
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Output Tapete:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -166,6 +168,7 @@ def plc_seletor_bolacha_msg(stage, app, flag):
     mem_number = "0095"
     mem_pos = 3
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Seletor Bolacha:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -197,6 +200,7 @@ def plc_cookie_ok_nok(stage, app, flag):
     mem_number = "0090"
     mem_pos = 7
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Bolacha OK NOK:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -223,6 +227,7 @@ def plc_cookie_inspection_end(stage, app, flag):
     mem_number = "0090"
     mem_pos = 8
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Inspeção Completa:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -250,6 +255,7 @@ Functions for maintenance
 def plc_work_hours(stage, app, flag):
     mem_number = "00040002" #read 2 bytes
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Work Hours:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -265,25 +271,28 @@ def plc_work_hours(stage, app, flag):
             integer = 1
         app.lbl_horas_trabalho.setText(round(integer/60))
 
-def plc_counter_massa(stage, app, flag):
-    mem_number = "00000002" #read 2 bytes
+def plc_counters(stage, app, flag):
+    mem_number = "00000006" #read 2 bytes
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Counters:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
         app.send_message()
         app.cur_fun_busy = True
-        app.cur_fun_callback = plc_counter_massa
+        app.cur_fun_callback = plc_counters
         app.cur_fun_stage = 1
         app.cur_fun_flag = flag
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:13]
-        integer = int(data, 16)
-        app.lbl_numero_descargas_massa.setText(integer)
+        data_massa = app.message_received[5:13]
+        data_recheio = app.message_received[13:21]
+        app.lbl_numero_descargas_massa.setText(int(data_massa, 16))
+        app.lbl_numero_descargas_recheio.setText(int(data_recheio, 16))
 
 def plc_counter_recheio(stage, app, flag):
     mem_number = "00020002" #read 2 bytes
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Counter recheio:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -303,6 +312,7 @@ Function for normal modes
 def plc_current_state(stage, app, flag):
     mem_number = "0000"
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Estado Atual:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -319,6 +329,7 @@ def plc_current_state(stage, app, flag):
 def plc_temperatura_forno(stage, app, flag):
     mem_number = "0105"
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Temperatura Forno:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -335,6 +346,7 @@ def plc_temperatura_forno(stage, app, flag):
 def plc_alarmes(stage, app, flag):
     mem_number = "0095" #read 2 bytes
     if ((app.cur_fun_busy == False) and (stage == 0)):
+        app.txt_logger.append("PLC Alarmes:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
