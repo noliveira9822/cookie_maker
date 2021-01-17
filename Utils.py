@@ -15,7 +15,6 @@ def img2map(image):
     pixmap = QPixmap.fromImage(qimage)
     return pixmap
 
-
 def compute_fcs(msg):
     return format(reduce(xor, map(ord, msg)), 'X')
 

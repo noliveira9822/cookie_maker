@@ -17,10 +17,13 @@ from functools import wraps
 from serial_asyncio import create_serial_connection
 
 import Utils
+from ui_files import resources
 
 '''
 Coroutines taken from turbohostlink
 '''
+
+
 def display_error(err):
     app = QApplication.instance()
     window = app.activeWindow()
@@ -28,6 +31,7 @@ def display_error(err):
     dialog.setWindowModality(Qt.WindowModal)
     dialog.setWindowTitle("Error")
     dialog.showMessage(err)
+
 
 def slot_coroutine(async_func):
     if not asyncio.iscoroutinefunction(async_func):
@@ -52,6 +56,7 @@ def slot_coroutine(async_func):
 '''
 Thread to record video
 '''
+
 
 class VideoThread(threading.Thread):
 
@@ -82,9 +87,11 @@ def grabFrame(camera):
     image = cv2.flip(image, 1)
     window.lbl_image.setPixmap(Utils.img2map(image))
 
+
 def startVideo():
     global videoThread
     videoThread = VideoThread(int(window.combo_indice_camera.currentText()))
+    videoThread.setDaemon(True)
     videoThread.start()
     window.btn_start.setEnabled(False)
     window.btn_stop.setEnabled(True)
@@ -99,20 +106,24 @@ def stopVideo():
         videoThread.stop()
     window.btn_start.setEnabled(True)
     window.btn_stop.setEnabled(False)
-    window.lbl_image.setPixmap(QPixmap("ui_files/black.png"))
     Utils.plc_modo_automatico_msg(0, window, 0)
+    window.lbl_image.setPixmap(QPixmap("ui_files/images/black.png"))
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self,loop):
+    def __init__(self, loop):
         super(MainWindow, self).__init__()
         uic.loadUi("ui_files/MainWindow.ui", self)
         self.setWindowTitle("Manual Remote Control")
-        self.setWindowIcon(QIcon("ui_files/ipca.png"))
-        self.lbl_image.setPixmap(QPixmap("ui_files/black.png"))
+        self.setWindowIcon(QIcon(":/icon/images/ipca.png"))
+        self.lbl_image.setPixmap(QPixmap(":/icon/images/black.png"))
         self.lbl_image.setScaledContents(True)
 
-        #setup hostlink
+        self.lbl_estado_massa.setPixmap(QPixmap(":/state_lights/images/green.png"))
+        self.lbl_estado_recheio.setPixmap(QPixmap(":/state_lights/images/green.png"))
+        self.lbl_estado_temperatura.setPixmap(QPixmap(":/state_lights/images/green.png"))
+
+        # setup hostlink
         self.loop = loop
         self.cur_fun_callback = None
         self.message_received = ""
@@ -195,9 +206,11 @@ class MainWindow(QtWidgets.QMainWindow):
 if __name__ == "__main__":
     print('Loading user interface...')
     QApp = QtWidgets.QApplication(sys.argv)
+    resources.qInitResources()
     QApp.setStyle("Fusion")
 
     loop = QEventLoop(QApp)
+
 
     window = MainWindow(loop)
     window.show()
@@ -209,4 +222,4 @@ if __name__ == "__main__":
         loop.run_forever()
     # creates global threads variables to be used through whole file
 
-    sys.exit(QApp.exec())
+    sys.exit(QApp.exec_) #app was not being termianted correctly with sys.exit(QApp.exec())
