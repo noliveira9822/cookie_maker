@@ -34,7 +34,7 @@
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_19">
     <item>
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="tab">
       <property name="font">
        <font>
         <family>Rockwell</family>
@@ -48,7 +48,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>3</number>
       </property>
       <property name="elideMode">
        <enum>Qt::ElideLeft</enum>
@@ -322,7 +322,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_manutencao">
+      <widget class="QWidget" name="tab_manual">
        <attribute name="title">
         <string>Manual</string>
        </attribute>
@@ -569,7 +569,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="tab_manutencao">
        <attribute name="title">
         <string>Manutenção</string>
        </attribute>
@@ -859,8 +859,8 @@
           <property name="alignment">
            <set>Qt::AlignCenter</set>
           </property>
-          <layout class="QGridLayout" name="gridLayout">
-           <item row="0" column="0">
+          <layout class="QVBoxLayout" name="verticalLayout_20">
+           <item>
             <layout class="QHBoxLayout" name="horizontalLayout_18">
              <item>
               <widget class="QLabel" name="label_15">
@@ -871,6 +871,20 @@
              </item>
              <item>
               <widget class="QComboBox" name="combo_indice_camera"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_23">
+             <item>
+              <widget class="QLabel" name="label_20">
+               <property name="text">
+                <string>Tempo de atualização</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spin_tempo_atualizacao"/>
              </item>
             </layout>
            </item>

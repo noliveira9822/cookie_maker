@@ -1,13 +1,24 @@
-import cv2
 import asyncio
 import time
-from PyQt5.QtGui import QImage, QPixmap
 from functools import reduce
 from operator import xor
-from serial.tools.list_ports import comports
-from serial import PARITY_EVEN, PARITY_NONE, PARITY_ODD
 
-#opencv image conversion and display on pixmap
+import cv2
+from PyQt5 import Qt
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QApplication, QErrorMessage
+from serial import PARITY_EVEN, PARITY_NONE, PARITY_ODD
+from serial.tools.list_ports import comports
+
+CAMERA_CLOSED_IMAGE = ":/icon/images/black.png"
+IPCA_IMAGE = ":/icon/images/ipca.png"
+STATE_GREEN = ":/state_lights/images/green.png"
+STATE_YELLOW = ":/state_lights/images/yellow.png"
+STATE_RED = ":/state_lights/images/red.png"
+
+
+# opencv image conversion and display on pixmap
 def img2map(image):
     height, width, channel = image.shape
     bytesPerLine = 3 * width
@@ -15,11 +26,13 @@ def img2map(image):
     pixmap = QPixmap.fromImage(qimage)
     return pixmap
 
-#fcs calculation for hostlink message
+
+# fcs calculation for hostlink message
 def compute_fcs(msg):
     return format(reduce(xor, map(ord, msg)), 'X')
 
-#message calculation for hostlink
+
+# message calculation for hostlink
 def HLNK_calculate_frame(node, cmd, data):
     header = "@"
     fcs = compute_fcs(f'@{node}{cmd}{data}')
@@ -27,7 +40,8 @@ def HLNK_calculate_frame(node, cmd, data):
     fullmsg = f"{header}{node}{cmd}{data}{fcs}{terminator}"
     return fullmsg
 
-#make plc enter monitor mode
+
+# make plc enter monitor mode
 def plc_monitor_mode_msg(app):
     app.txt_logger.append("PLC Monitor Mode:")
     app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "SC", "02")
@@ -35,29 +49,30 @@ def plc_monitor_mode_msg(app):
 
 
 def plc_modo_automatico_msg(stage, app, flag):
-    mem_number = "0098"                                                 #memory number to be read written
-    mem_pos = 0                                                         #memory position
+    mem_number = "0098"  # memory number to be read written
+    mem_pos = 0  # memory position
     if ((app.cur_fun_busy == False) and (stage == 0)):
         app.txt_logger.append("PLC Automatic Mode:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
-        app.send_message()                                              #send reading command
+        app.send_message()  # send reading command
         app.cur_fun_busy = True
-        app.cur_fun_callback = plc_modo_automatico_msg                  #read function callback
+        app.cur_fun_callback = plc_modo_automatico_msg  # read function callback
         app.cur_fun_stage = 1
         app.cur_fun_flag = flag
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]                                #read data on the memory
-        integer = int(data, 16)                                         #convert data to integer
-        mask = pow(2, mem_pos)                                          #create a mask for bit operation
-        if flag == True:                                                #bit operation
+        data = app.message_received[5:9]  # read data on the memory
+        integer = int(data, 16)  # convert data to integer
+        mask = pow(2, mem_pos)  # create a mask for bit operation
+        if flag == True:  # bit operation
             integer = integer | mask
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
-        app.send_message()                                              #send the correct bit changed
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   mem_number + format(integer, "X").zfill(4))
+        app.send_message()  # send the correct bit changed
 
 
 def plc_dispensador_massa_msg(stage, app, flag):
@@ -82,7 +97,8 @@ def plc_dispensador_massa_msg(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
 
@@ -108,7 +124,8 @@ def plc_dispensador_recheio_msg(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
 
@@ -134,7 +151,8 @@ def plc_forno_msg(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
 
@@ -160,7 +178,8 @@ def plc_tapete_msg(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
 
@@ -186,15 +205,18 @@ def plc_seletor_bolacha_msg(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
- #function to control ok and nok cookies
-def bolacha_insp(app,resultado):
-    plc_cookie_ok_nok(0,app,resultado)
-    plc_cookie_inspection_end(0,app,True)
+
+# function to control ok and nok cookies
+def bolacha_insp(app, resultado):
+    plc_cookie_ok_nok(0, app, resultado)
+    plc_cookie_inspection_end(0, app, True)
     time.sleep(0.1)
-    plc_cookie_inspection_end(0,app,False)
+    plc_cookie_inspection_end(0, app, False)
+
 
 def plc_cookie_ok_nok(stage, app, flag):
     mem_number = "0090"
@@ -245,15 +267,18 @@ def plc_cookie_inspection_end(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   mem_number + format(integer, "X").zfill(4))
         app.send_message()
+
 
 '''
 Functions for maintenance
 '''
 
+
 def plc_work_hours(stage, app, flag):
-    mem_number = "00040002" #read 2 bytes
+    mem_number = "00040002"  # read 2 bytes
     if ((app.cur_fun_busy == False) and (stage == 0)):
         app.txt_logger.append("PLC Work Hours:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
@@ -269,10 +294,11 @@ def plc_work_hours(stage, app, flag):
         integer = int(data, 16)
         if integer == 0:
             integer = 1
-        app.lbl_horas_trabalho.setText(round(integer/60))
+        app.lbl_horas_trabalho.setText(round(integer / 60))
+
 
 def plc_counters(stage, app, flag):
-    mem_number = "00000006" #read 2 bytes
+    mem_number = "00000006"  # read 2 bytes
     if ((app.cur_fun_busy == False) and (stage == 0)):
         app.txt_logger.append("PLC Counters:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
@@ -289,8 +315,9 @@ def plc_counters(stage, app, flag):
         app.lbl_numero_descargas_massa.setText(int(data_massa, 16))
         app.lbl_numero_descargas_recheio.setText(int(data_recheio, 16))
 
+
 def plc_counter_recheio(stage, app, flag):
-    mem_number = "00020002" #read 2 bytes
+    mem_number = "00020002"  # read 2 bytes
     if ((app.cur_fun_busy == False) and (stage == 0)):
         app.txt_logger.append("PLC Counter recheio:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
@@ -306,9 +333,12 @@ def plc_counter_recheio(stage, app, flag):
         integer = int(data, 16)
         app.lbl_numero_descargas_recheio.setText(integer)
 
+
 '''
 Function for normal modes
 '''
+
+
 def plc_current_state(stage, app, flag):
     mem_number = "0000"
     if ((app.cur_fun_busy == False) and (stage == 0)):
@@ -325,6 +355,7 @@ def plc_current_state(stage, app, flag):
         data = app.message_received[5:9]
         integer = int(data, 16)
         app.lbl_estado_atual.setText(integer)
+
 
 def plc_temperatura_forno(stage, app, flag):
     mem_number = "0105"
@@ -343,8 +374,9 @@ def plc_temperatura_forno(stage, app, flag):
         integer = int(data, 16)
         app.lbl_valor_temperatura.setText(integer)
 
+
 def plc_alarmes(stage, app, flag):
-    mem_number = "0095" #read 2 bytes
+    mem_number = "0095"  # read 2 bytes
     if ((app.cur_fun_busy == False) and (stage == 0)):
         app.txt_logger.append("PLC Alarmes:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
@@ -423,9 +455,11 @@ def setup_serial(item):
 
     item.edt_num_plc.setText("00")
 
+
 '''
 Function to output and receive data from serial port
 '''
+
 
 class Output(asyncio.Protocol):
     def __init__(self):
@@ -481,3 +515,13 @@ class Output(asyncio.Protocol):
     async def send(self, message):
         self.transport.serial.write(message.encode('ascii'))
         print(f'Writer sent: {message}')
+
+
+# This code shows a window if any error occurs in the program
+def display_error(err):
+    app = QApplication.instance()
+    window = app.activeWindow()
+    dialog = QErrorMessage(window)
+    dialog.setWindowModality(Qt.WindowModal)
+    dialog.setWindowTitle("Error")
+    dialog.showMessage(err)

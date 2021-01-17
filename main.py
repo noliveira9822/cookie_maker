@@ -6,7 +6,7 @@ import traceback
 
 import cv2
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QPushButton, QHBoxLayout, QLineEdit, QComboBox, \
     QLabel, QPlainTextEdit, QErrorMessage
@@ -23,16 +23,8 @@ from ui_files import resources
 Coroutines taken from turbohostlink
 '''
 
-#This code shows a window if any error occurs in the program
-def display_error(err):
-    app = QApplication.instance()
-    window = app.activeWindow()
-    dialog = QErrorMessage(window)
-    dialog.setWindowModality(Qt.WindowModal)
-    dialog.setWindowTitle("Error")
-    dialog.showMessage(err)
 
-#Function that allows a function to be executed assincronously
+# Function that allows a function to be executed assincronously
 def slot_coroutine(async_func):
     if not asyncio.iscoroutinefunction(async_func):
         raise RuntimeError('Must be a coroutine!')
@@ -41,7 +33,7 @@ def slot_coroutine(async_func):
         try:
             future.result()
         except Exception as err:
-            display_error(traceback.format_exc())
+            Utils.display_error(traceback.format_exc())
 
     @wraps(async_func)
     def wrapper(self, *args):
@@ -50,7 +42,6 @@ def slot_coroutine(async_func):
         future.add_done_callback(log_error)
 
     return wrapper
-
 
 
 '''
@@ -95,9 +86,8 @@ def startVideo():
     videoThread.start()
     window.btn_start.setEnabled(False)
     window.btn_stop.setEnabled(True)
-    #serial tcommunitaction to enable automatic mode
+    # serial tcommunitaction to enable automatic mode
     Utils.plc_modo_automatico_msg(0, window, 1)
-
 
 
 def stopVideo():
@@ -106,22 +96,29 @@ def stopVideo():
         videoThread.stop()
     window.btn_start.setEnabled(True)
     window.btn_stop.setEnabled(False)
-    window.lbl_image.setPixmap(QPixmap("ui_files/images/black.png"))
+    window.lbl_image.setPixmap(QPixmap(Utils.CAMERA_CLOSED_IMAGE))
     # serial tcommunitaction to disable automatic mode
     Utils.plc_modo_automatico_msg(0, window, 0)
+
+
+def refresh_interface():
+    print("timer tick tick...")
+
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, loop):
         super(MainWindow, self).__init__()
         uic.loadUi("ui_files/MainWindow.ui", self)
         self.setWindowTitle("Manual Remote Control")
-        self.setWindowIcon(QIcon(":/icon/images/ipca.png"))
-        self.lbl_image.setPixmap(QPixmap(":/icon/images/black.png"))
+        self.setWindowIcon(QIcon(Utils.IPCA_IMAGE))
+        self.lbl_image.setPixmap(QPixmap(Utils.CAMERA_CLOSED_IMAGE))
         self.lbl_image.setScaledContents(True)
 
-        self.lbl_estado_massa.setPixmap(QPixmap(":/state_lights/images/green.png"))
-        self.lbl_estado_recheio.setPixmap(QPixmap(":/state_lights/images/green.png"))
-        self.lbl_estado_temperatura.setPixmap(QPixmap(":/state_lights/images/green.png"))
+        self.lbl_estado_massa.setPixmap(QPixmap(Utils.STATE_GREEN))
+        self.lbl_estado_recheio.setPixmap(QPixmap(Utils.STATE_YELLOW))
+        self.lbl_estado_temperatura.setPixmap(QPixmap(Utils.STATE_RED))
+
+        self.tab.setCurrentIndex(0)
 
         # setup variables needed for callbacks
         self.loop = loop
@@ -132,27 +129,27 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cur_fun_flag = False
 
         # signals & slots
-            #camera
+        # camera
         self.btn_start.clicked.connect(startVideo)
         self.btn_stop.clicked.connect(stopVideo)
         self.combo_indice_camera.addItems(Utils.list_ports())
 
         self.btn_clear_log.clicked.connect(lambda: self.txt_logger.setText(""))
-            #automatico
+        # automatico
         # the lambda is here because the function needs to be callable
-        self.btn_bolacha_ok.clicked.connect(lambda: Utils.bolacha_insp(self,True))
-        self.btn_bolacha_not_ok.clicked.connect(lambda: Utils.bolacha_insp(self,False))
-            #serial
+        self.btn_bolacha_ok.clicked.connect(lambda: Utils.bolacha_insp(self, True))
+        self.btn_bolacha_not_ok.clicked.connect(lambda: Utils.bolacha_insp(self, False))
+        # serial
         Utils.setup_serial(self)
 
         self.btn_connect.clicked.connect(self.open_port)
         self.btn_disconnect.clicked.connect(self.close_port)
 
-            #manual
-        self.btn_activar_massa.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0,self,True))
-        self.btn_desactivar_massa.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0,self,False))
-        self.btn_ativar_recheio.clicked.connect(lambda: Utils.plc_dispensador_recheio_msg(0,self,True))
-        self.btn_desativar_recheio.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0,self,False))
+        # manual
+        self.btn_activar_massa.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0, self, True))
+        self.btn_desactivar_massa.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0, self, False))
+        self.btn_ativar_recheio.clicked.connect(lambda: Utils.plc_dispensador_recheio_msg(0, self, True))
+        self.btn_desativar_recheio.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0, self, False))
         self.btn_ativar_tapete.clicked.connect(lambda: Utils.plc_tapete_msg(0, self, True))
         self.btn_desativar_tapete.clicked.connect(lambda: Utils.plc_tapete_msg(0, self, False))
         self.btn_ativar_saida_forno.clicked.connect(lambda: Utils.plc_forno_msg(0, self, True))
@@ -172,7 +169,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def recv_message(self, msg):
         self.message_received = msg
         if self.cur_fun_callback is not None:
-            self.cur_fun_callback(self.cur_fun_stage,self,self.cur_fun_flag)
+            self.cur_fun_callback(self.cur_fun_stage, self, self.cur_fun_flag)
             self.cur_fun_callback = None
             self.cur_fun_stage = 0
         self.txt_logger.append("PLC --> " + self.message_received)
@@ -200,12 +197,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.btn_connect.setDisabled(True)
         self.btn_disconnect.setDisabled(False)
         Utils.plc_monitor_mode_msg(window)
+        refresh_timer.start(self.spin_tempo_atualizacao.value())
 
     def close_port(self):
         self.loop.stop()
         self.btn_connect.setDisabled(False)
         self.btn_disconnect.setDisabled(True)
-
+        refresh_timer.stop()
 
 
 if __name__ == "__main__":
@@ -218,6 +216,9 @@ if __name__ == "__main__":
     window = MainWindow(loop)
     window.show()
 
+    refresh_timer = QTimer()
+    refresh_timer.timeout.connect(refresh_interface)
+
     videoThread = None
     print("All initialized")
 
@@ -225,4 +226,4 @@ if __name__ == "__main__":
         loop.run_forever()
     # creates global threads variables to be used through whole file
 
-    sys.exit(QApp.exec_) #app was not being terminated correctly with sys.exit(QApp.exec())
+    sys.exit(QApp.exec_)  # app was not being terminated correctly with sys.exit(QApp.exec())
