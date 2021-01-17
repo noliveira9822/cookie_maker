@@ -23,7 +23,7 @@ from ui_files import resources
 Coroutines taken from turbohostlink
 '''
 
-
+#This code shows a window if any error occurs in the program
 def display_error(err):
     app = QApplication.instance()
     window = app.activeWindow()
@@ -32,7 +32,7 @@ def display_error(err):
     dialog.setWindowTitle("Error")
     dialog.showMessage(err)
 
-
+#Function that allows a function to be executed assincronously
 def slot_coroutine(async_func):
     if not asyncio.iscoroutinefunction(async_func):
         raise RuntimeError('Must be a coroutine!')
@@ -95,7 +95,7 @@ def startVideo():
     videoThread.start()
     window.btn_start.setEnabled(False)
     window.btn_stop.setEnabled(True)
-    #serial test
+    #serial tcommunitaction to enable automatic mode
     Utils.plc_modo_automatico_msg(0, window, 1)
 
 
@@ -106,8 +106,10 @@ def stopVideo():
         videoThread.stop()
     window.btn_start.setEnabled(True)
     window.btn_stop.setEnabled(False)
-    Utils.plc_modo_automatico_msg(0, window, 0)
     window.lbl_image.setPixmap(QPixmap("ui_files/images/black.png"))
+    # serial tcommunitaction to disable automatic mode
+    Utils.plc_modo_automatico_msg(0, window, 0)
+
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -123,7 +125,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lbl_estado_recheio.setPixmap(QPixmap(":/state_lights/images/green.png"))
         self.lbl_estado_temperatura.setPixmap(QPixmap(":/state_lights/images/green.png"))
 
-        # setup hostlink
+        # setup variables needed for callbacks
         self.loop = loop
         self.cur_fun_callback = None
         self.message_received = ""
@@ -152,6 +154,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # show interface
         self.show()
 
+    #function to control ok and nok cookies
     def bolacha_insp(self,resultado):
         Utils.plc_cookie_ok_nok(0,self,resultado)
         Utils.plc_cookie_inspection_end(0,self,True)
@@ -193,7 +196,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.btn_connect.setDisabled(True)
         self.btn_disconnect.setDisabled(False)
-
         Utils.plc_monitor_mode_msg(window)
 
     def close_port(self):
@@ -222,4 +224,4 @@ if __name__ == "__main__":
         loop.run_forever()
     # creates global threads variables to be used through whole file
 
-    sys.exit(QApp.exec_) #app was not being termianted correctly with sys.exit(QApp.exec())
+    sys.exit(QApp.exec_) #app was not being terminated correctly with sys.exit(QApp.exec())

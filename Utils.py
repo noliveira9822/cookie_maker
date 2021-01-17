@@ -7,7 +7,7 @@ from operator import xor
 from serial.tools.list_ports import comports
 from serial import PARITY_EVEN, PARITY_NONE, PARITY_ODD
 
-
+#opencv image conversion and display on pixmap
 def img2map(image):
     height, width, channel = image.shape
     bytesPerLine = 3 * width
@@ -15,10 +15,11 @@ def img2map(image):
     pixmap = QPixmap.fromImage(qimage)
     return pixmap
 
+#fcs calculation for hostlink message
 def compute_fcs(msg):
     return format(reduce(xor, map(ord, msg)), 'X')
 
-
+#message calculation for hostlink
 def HLNK_calculate_frame(node, cmd, data):
     header = "@"
     fcs = compute_fcs(f'@{node}{cmd}{data}')
@@ -26,40 +27,42 @@ def HLNK_calculate_frame(node, cmd, data):
     fullmsg = f"{header}{node}{cmd}{data}{fcs}{terminator}"
     return fullmsg
 
-
+#make plc enter monitor mode
 def plc_monitor_mode_msg(app):
     app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "SC", "02")
     app.send_message()
 
 
 def plc_modo_automatico_msg(stage, app, flag):
-    mem_pos = 0
+    mem_number = "0098"                                                 #memory number to be read written
+    mem_pos = 0                                                         #memory position
     if ((app.cur_fun_busy == False) and (stage == 0)):
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "98")
-        app.send_message()
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.send_message()                                              #send reading command
         app.cur_fun_busy = True
-        app.cur_fun_callback = plc_modo_automatico_msg
+        app.cur_fun_callback = plc_modo_automatico_msg                  #read function callback
         app.cur_fun_stage = 1
         app.cur_fun_flag = flag
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]
-        integer = int(data, 16)
-        mask = pow(2, mem_pos)
-        if flag == True:
+        data = app.message_received[5:9]                                #read data on the memory
+        integer = int(data, 16)                                         #convert data to integer
+        mask = pow(2, mem_pos)                                          #create a mask for bit operation
+        if flag == True:                                                #bit operation
             integer = integer | mask
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "98" + format(integer, "X").zfill(4))
-        app.send_message()
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
+        app.send_message()                                              #send the correct bit changed
 
 
 def plc_dispensador_massa_msg(stage, app, flag):
+    mem_number = "95"
     mem_pos = 0
     if ((app.cur_fun_busy == False) and (stage == 0)):
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "95")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_dispensador_massa_msg
@@ -76,14 +79,15 @@ def plc_dispensador_massa_msg(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "95" + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
 
 def plc_dispensador_recheio_msg(stage, app, flag):
+    mem_number = "0095"
     mem_pos = 1
     if ((app.cur_fun_busy == False) and (stage == 0)):
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "95")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_dispensador_recheio_msg
@@ -100,14 +104,15 @@ def plc_dispensador_recheio_msg(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "95" + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
 
 def plc_forno_msg(stage, app, flag):
+    mem_number = "0095"
     mem_pos = 2
     if ((app.cur_fun_busy == False) and (stage == 0)):
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "95")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_forno_msg
@@ -124,14 +129,15 @@ def plc_forno_msg(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "95" + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
 
 def plc_tapete_msg(stage, app, flag):
+    mem_number = "0095"
     mem_pos = 4
     if ((app.cur_fun_busy == False) and (stage == 0)):
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "95")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_tapete_msg
@@ -148,14 +154,15 @@ def plc_tapete_msg(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "95" + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
 
 def plc_seletor_bolacha_msg(stage, app, flag):
+    mem_number = "0095"
     mem_pos = 3
     if ((app.cur_fun_busy == False) and (stage == 0)):
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "95")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_seletor_bolacha_msg
@@ -172,14 +179,15 @@ def plc_seletor_bolacha_msg(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "95" + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
 
 def plc_cookie_ok_nok(stage, app, flag):
+    mem_number = "0090"
     mem_pos = 7
     if ((app.cur_fun_busy == False) and (stage == 0)):
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "90")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_cookie_ok_nok
@@ -197,14 +205,15 @@ def plc_cookie_ok_nok(stage, app, flag):
             integer = integer & ~mask
 
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
-                                                   "90" + format(integer, "X").zfill(4))
+                                                   mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
 
 def plc_cookie_inspection_end(stage, app, flag):
+    mem_number = "0090"
     mem_pos = 8
     if ((app.cur_fun_busy == False) and (stage == 0)):
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "90")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_cookie_inspection_end
@@ -221,7 +230,7 @@ def plc_cookie_inspection_end(stage, app, flag):
         else:
             integer = integer & ~mask
 
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", "90" + format(integer, "X").zfill(4))
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD", mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
 
@@ -273,6 +282,9 @@ def setup_serial(item):
 
     item.edt_num_plc.setText("00")
 
+'''
+Function to output and receive data from serial port
+'''
 
 class Output(asyncio.Protocol):
     def __init__(self):
