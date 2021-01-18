@@ -149,13 +149,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.btn_activar_massa.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0, self, True))
         self.btn_desactivar_massa.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0, self, False))
         self.btn_ativar_recheio.clicked.connect(lambda: Utils.plc_dispensador_recheio_msg(0, self, True))
-        self.btn_desativar_recheio.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0, self, False))
+        self.btn_desativar_recheio.clicked.connect(lambda: Utils.plc_dispensador_recheio_msg(0, self, False))
         self.btn_ativar_tapete.clicked.connect(lambda: Utils.plc_tapete_msg(0, self, True))
         self.btn_desativar_tapete.clicked.connect(lambda: Utils.plc_tapete_msg(0, self, False))
         self.btn_ativar_saida_forno.clicked.connect(lambda: Utils.plc_forno_msg(0, self, True))
         self.btn_desativar_saida_forno.clicked.connect(lambda: Utils.plc_forno_msg(0, self, False))
-        self.btn_ativar_separador.clicked.connect(lambda: Utils.plc_seletor_bolacha_msg(0, self, True))
-        self.btn_desativar_separador.clicked.connect(lambda: Utils.plc_seletor_bolacha_msg(0, self, False))
+        self.btn_ativar_separador_OK.clicked.connect(lambda: Utils.plc_seletor_bolacha_OK(0, self, True))
+        self.btn_desativar_separador_OK.clicked.connect(lambda: Utils.plc_seletor_bolacha_OK(0, self, False))
+        self.btn_ativar_separador_NOK.clicked.connect(lambda: Utils.plc_selector_bolacha_NOK(0, self, True))
+        self.btn_desativar_separador_NOK.clicked.connect(lambda: Utils.plc_selector_bolacha_NOK(0, self, False))
 
         # show interface
         self.show()
@@ -200,10 +202,14 @@ class MainWindow(QtWidgets.QMainWindow):
         refresh_timer.start(self.spin_tempo_atualizacao.value())
 
     def close_port(self):
-        self.loop.stop()
         self.btn_connect.setDisabled(False)
         self.btn_disconnect.setDisabled(True)
         refresh_timer.stop()
+
+    def closeEvent(self, event):
+        if self.loop.is_running():
+            self.loop.stop()
+        event.accept()
 
 
 if __name__ == "__main__":

@@ -51,9 +51,9 @@ def plc_monitor_mode_msg(app):
 def plc_modo_automatico_msg(stage, app, flag):
     mem_number = "0098"  # memory number to be read written
     mem_pos = 0  # memory position
-    if ((app.cur_fun_busy == False) and (stage == 0)):
+    if (app.cur_fun_busy == False) and (stage == 0):
         app.txt_logger.append("PLC Automatic Mode:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()  # send reading command
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_modo_automatico_msg  # read function callback
@@ -62,10 +62,10 @@ def plc_modo_automatico_msg(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]  # read data on the memory
+        data = app.message_received[7:11]  # read data on the memory
         integer = int(data, 16)  # convert data to integer
         mask = pow(2, mem_pos)  # create a mask for bit operation
-        if flag == True:  # bit operation
+        if flag:  # bit operation
             integer = integer | mask
         else:
             integer = integer & ~mask
@@ -76,11 +76,11 @@ def plc_modo_automatico_msg(stage, app, flag):
 
 
 def plc_dispensador_massa_msg(stage, app, flag):
-    mem_number = "95"
+    mem_number = "0095"
     mem_pos = 0
-    if ((app.cur_fun_busy == False) and (stage == 0)):
+    if (app.cur_fun_busy == False) and (stage == 0):
         app.txt_logger.append("PLC Dispensar Massa:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_dispensador_massa_msg
@@ -89,10 +89,10 @@ def plc_dispensador_massa_msg(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]
+        data = app.message_received[7:11]
         integer = int(data, 16)
         mask = pow(2, mem_pos)
-        if flag == True:
+        if flag:
             integer = integer | mask
         else:
             integer = integer & ~mask
@@ -105,9 +105,9 @@ def plc_dispensador_massa_msg(stage, app, flag):
 def plc_dispensador_recheio_msg(stage, app, flag):
     mem_number = "0095"
     mem_pos = 1
-    if ((app.cur_fun_busy == False) and (stage == 0)):
+    if (app.cur_fun_busy == False) and (stage == 0):
         app.txt_logger.append("PLC Dispensar Recheio:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_dispensador_recheio_msg
@@ -116,10 +116,10 @@ def plc_dispensador_recheio_msg(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]
+        data = app.message_received[7:11]
         integer = int(data, 16)
         mask = pow(2, mem_pos)
-        if flag == True:
+        if flag:
             integer = integer | mask
         else:
             integer = integer & ~mask
@@ -132,9 +132,9 @@ def plc_dispensador_recheio_msg(stage, app, flag):
 def plc_forno_msg(stage, app, flag):
     mem_number = "0095"
     mem_pos = 2
-    if ((app.cur_fun_busy == False) and (stage == 0)):
+    if (app.cur_fun_busy == False) and (stage == 0):
         app.txt_logger.append("PLC Output Forno:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_forno_msg
@@ -143,7 +143,7 @@ def plc_forno_msg(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]
+        data = app.message_received[7:11]
         integer = int(data, 16)
         mask = pow(2, mem_pos)
         if flag == True:
@@ -161,7 +161,7 @@ def plc_tapete_msg(stage, app, flag):
     mem_pos = 4
     if ((app.cur_fun_busy == False) and (stage == 0)):
         app.txt_logger.append("PLC Output Tapete:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_tapete_msg
@@ -170,10 +170,10 @@ def plc_tapete_msg(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]
+        data = app.message_received[7:11]
         integer = int(data, 16)
         mask = pow(2, mem_pos)
-        if flag == True:
+        if flag:
             integer = integer | mask
         else:
             integer = integer & ~mask
@@ -183,24 +183,24 @@ def plc_tapete_msg(stage, app, flag):
         app.send_message()
 
 
-def plc_seletor_bolacha_msg(stage, app, flag):
+def plc_seletor_bolacha_OK(stage, app, flag):
     mem_number = "0095"
     mem_pos = 3
-    if ((app.cur_fun_busy == False) and (stage == 0)):
+    if (app.cur_fun_busy == False) and (stage == 0):
         app.txt_logger.append("PLC Seletor Bolacha:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
-        app.cur_fun_callback = plc_seletor_bolacha_msg
+        app.cur_fun_callback = plc_seletor_bolacha_OK
         app.cur_fun_stage = 1
         app.cur_fun_flag = flag
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]
+        data = app.message_received[7:11]
         integer = int(data, 16)
         mask = pow(2, mem_pos)
-        if flag == True:
+        if flag:
             integer = integer | mask
         else:
             integer = integer & ~mask
@@ -221,9 +221,9 @@ def bolacha_insp(app, resultado):
 def plc_cookie_ok_nok(stage, app, flag):
     mem_number = "0090"
     mem_pos = 7
-    if ((app.cur_fun_busy == False) and (stage == 0)):
+    if (app.cur_fun_busy == False) and (stage == 0):
         app.txt_logger.append("PLC Bolacha OK NOK:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_cookie_ok_nok
@@ -232,10 +232,10 @@ def plc_cookie_ok_nok(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]
+        data = app.message_received[7:11]
         integer = int(data, 16)
         mask = pow(2, mem_pos)
-        if flag == True:
+        if flag:
             integer = integer | mask
         else:
             integer = integer & ~mask
@@ -250,7 +250,7 @@ def plc_cookie_inspection_end(stage, app, flag):
     mem_pos = 8
     if ((app.cur_fun_busy == False) and (stage == 0)):
         app.txt_logger.append("PLC Inspeção Completa:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_cookie_inspection_end
@@ -259,10 +259,10 @@ def plc_cookie_inspection_end(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]
+        data = app.message_received[7:11]
         integer = int(data, 16)
         mask = pow(2, mem_pos)
-        if flag == True:
+        if flag:
             integer = integer | mask
         else:
             integer = integer & ~mask
@@ -279,7 +279,7 @@ Functions for maintenance
 
 def plc_work_hours(stage, app, flag):
     mem_number = "00040002"  # read 2 bytes
-    if ((app.cur_fun_busy == False) and (stage == 0)):
+    if (app.cur_fun_busy == False) and (stage == 0):
         app.txt_logger.append("PLC Work Hours:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
         app.send_message()
@@ -290,7 +290,7 @@ def plc_work_hours(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:13]
+        data = app.message_received[7:15]
         integer = int(data, 16)
         if integer == 0:
             integer = 1
@@ -299,7 +299,7 @@ def plc_work_hours(stage, app, flag):
 
 def plc_counters(stage, app, flag):
     mem_number = "00000006"  # read 2 bytes
-    if ((app.cur_fun_busy == False) and (stage == 0)):
+    if (app.cur_fun_busy == False) and (stage == 0):
         app.txt_logger.append("PLC Counters:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
         app.send_message()
@@ -310,8 +310,8 @@ def plc_counters(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data_massa = app.message_received[5:13]
-        data_recheio = app.message_received[13:21]
+        data_massa = app.message_received[7:15]
+        data_recheio = app.message_received[15:23]
         app.lbl_numero_descargas_massa.setText(int(data_massa, 16))
         app.lbl_numero_descargas_recheio.setText(int(data_recheio, 16))
 
@@ -329,7 +329,7 @@ def plc_counter_recheio(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:13]
+        data = app.message_received[7:15]
         integer = int(data, 16)
         app.lbl_numero_descargas_recheio.setText(integer)
 
@@ -343,7 +343,7 @@ def plc_current_state(stage, app, flag):
     mem_number = "0000"
     if ((app.cur_fun_busy == False) and (stage == 0)):
         app.txt_logger.append("PLC Estado Atual:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_current_state
@@ -352,16 +352,16 @@ def plc_current_state(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]
+        data = app.message_received[7:11]
         integer = int(data, 16)
         app.lbl_estado_atual.setText(integer)
 
 
 def plc_temperatura_forno(stage, app, flag):
     mem_number = "0105"
-    if ((app.cur_fun_busy == False) and (stage == 0)):
+    if (app.cur_fun_busy == False) and (stage == 0):
         app.txt_logger.append("PLC Temperatura Forno:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_temperatura_forno
@@ -370,16 +370,16 @@ def plc_temperatura_forno(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:9]
+        data = app.message_received[7:11]
         integer = int(data, 16)
         app.lbl_valor_temperatura.setText(integer)
 
 
 def plc_alarmes(stage, app, flag):
     mem_number = "0095"  # read 2 bytes
-    if ((app.cur_fun_busy == False) and (stage == 0)):
+    if (app.cur_fun_busy == False) and (stage == 0):
         app.txt_logger.append("PLC Alarmes:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number)
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
         app.cur_fun_callback = plc_alarmes
@@ -388,7 +388,7 @@ def plc_alarmes(stage, app, flag):
     elif stage == 1:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[5:13]
+        data = app.message_received[7:15]
         integer = int(data, 16)
         alarme_massa = pow(2, 5) & integer
         alarme_recheio = pow(2, 6) & integer
@@ -525,3 +525,30 @@ def display_error(err):
     dialog.setWindowModality(Qt.WindowModal)
     dialog.setWindowTitle("Error")
     dialog.showMessage(err)
+
+
+def plc_selector_bolacha_NOK(stage, app, flag):
+    mem_number = "0095"
+    mem_pos = 8
+    if (app.cur_fun_busy == False) and (stage == 0):
+        app.txt_logger.append("PLC Seletor Bolacha:")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
+        app.send_message()
+        app.cur_fun_busy = True
+        app.cur_fun_callback = plc_selector_bolacha_NOK
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = flag
+    elif stage == 1:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        data = app.message_received[7:11]
+        integer = int(data, 16)
+        mask = pow(2, mem_pos)
+        if flag:
+            integer = integer | mask
+        else:
+            integer = integer & ~mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   mem_number + format(integer, "X").zfill(4))
+        app.send_message()
