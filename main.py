@@ -101,10 +101,6 @@ def stopVideo():
     Utils.plc_modo_automatico_msg(0, window, 0)
 
 
-def refresh_interface():
-    print("timer tick tick...")
-
-
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, loop):
         super(MainWindow, self).__init__()
@@ -170,11 +166,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def recv_message(self, msg):
         self.message_received = msg
-        if self.cur_fun_callback is not None:
-            self.cur_fun_callback(self.cur_fun_stage, self, self.cur_fun_flag)
-            self.cur_fun_callback = None
-            self.cur_fun_stage = 0
         self.txt_logger.append("PLC --> " + self.message_received)
+        if self.cur_fun_callback is not None:
+            print("called  " + str(self.cur_fun_stage))
+            self.cur_fun_callback(self.cur_fun_stage, self, self.cur_fun_flag)
+        else:
+            print("none")
+
+
 
     @slot_coroutine
     async def open_port(self):
@@ -223,7 +222,7 @@ if __name__ == "__main__":
     window.show()
 
     refresh_timer = QTimer()
-    refresh_timer.timeout.connect(refresh_interface)
+    refresh_timer.timeout.connect(lambda: Utils.refresh_interface(window))
 
     videoThread = None
     print("All initialized")

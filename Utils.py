@@ -61,6 +61,7 @@ def plc_modo_automatico_msg(stage, app, flag):
         app.cur_fun_flag = flag
     elif stage == 1:
         app.cur_fun_busy = False
+        app.cur_fun_stage = 0
         app.cur_fun_callback = None
         data = app.message_received[7:11]  # read data on the memory
         integer = int(data, 16)  # convert data to integer
@@ -88,6 +89,7 @@ def plc_dispensador_massa_msg(stage, app, flag):
         app.cur_fun_flag = flag
     elif stage == 1:
         app.cur_fun_busy = False
+        app.cur_fun_stage = 0
         app.cur_fun_callback = None
         data = app.message_received[7:11]
         integer = int(data, 16)
@@ -115,6 +117,7 @@ def plc_dispensador_recheio_msg(stage, app, flag):
         app.cur_fun_flag = flag
     elif stage == 1:
         app.cur_fun_busy = False
+        app.cur_fun_stage = 0
         app.cur_fun_callback = None
         data = app.message_received[7:11]
         integer = int(data, 16)
@@ -142,6 +145,7 @@ def plc_forno_msg(stage, app, flag):
         app.cur_fun_flag = flag
     elif stage == 1:
         app.cur_fun_busy = False
+        app.cur_fun_stage = 0
         app.cur_fun_callback = None
         data = app.message_received[7:11]
         integer = int(data, 16)
@@ -169,6 +173,7 @@ def plc_tapete_msg(stage, app, flag):
         app.cur_fun_flag = flag
     elif stage == 1:
         app.cur_fun_busy = False
+        app.cur_fun_stage = 0
         app.cur_fun_callback = None
         data = app.message_received[7:11]
         integer = int(data, 16)
@@ -196,6 +201,7 @@ def plc_seletor_bolacha_OK(stage, app, flag):
         app.cur_fun_flag = flag
     elif stage == 1:
         app.cur_fun_busy = False
+        app.cur_fun_stage = 0
         app.cur_fun_callback = None
         data = app.message_received[7:11]
         integer = int(data, 16)
@@ -211,7 +217,7 @@ def plc_seletor_bolacha_OK(stage, app, flag):
 
 
 # function to control ok and nok cookies
-def bolacha_insp(app, resultado):
+def bolacha_insp(stage, app, resultado):
     plc_cookie_ok_nok(0, app, resultado)
     plc_cookie_inspection_end(0, app, True)
     time.sleep(0.1)
@@ -258,6 +264,7 @@ def plc_cookie_inspection_end(stage, app, flag):
         app.cur_fun_flag = flag
     elif stage == 1:
         app.cur_fun_busy = False
+        app.cur_fun_stage = 0
         app.cur_fun_callback = None
         data = app.message_received[7:11]
         integer = int(data, 16)
@@ -277,61 +284,65 @@ Functions for maintenance
 '''
 
 
-def plc_work_hours(stage, app, flag):
-    mem_number = "00040002"  # read 2 bytes
-    if (app.cur_fun_busy == False) and (stage == 0):
-        app.txt_logger.append("PLC Work Hours:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
-        app.send_message()
-        app.cur_fun_busy = True
-        app.cur_fun_callback = plc_work_hours
-        app.cur_fun_stage = 1
-        app.cur_fun_flag = flag
-    elif stage == 1:
-        app.cur_fun_busy = False
-        app.cur_fun_callback = None
-        data = app.message_received[7:15]
-        integer = int(data, 16)
-        if integer == 0:
-            integer = 1
-        app.lbl_horas_trabalho.setText(round(integer / 60))
 
 
-def plc_counters(stage, app, flag):
+def plc_refresh(stage, app, flag):
     mem_number = "00000006"  # read 2 bytes
     if (app.cur_fun_busy == False) and (stage == 0):
         app.txt_logger.append("PLC Counters:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
         app.send_message()
         app.cur_fun_busy = True
-        app.cur_fun_callback = plc_counters
+        app.cur_fun_callback = plc_refresh
         app.cur_fun_stage = 1
         app.cur_fun_flag = flag
     elif stage == 1:
-        app.cur_fun_busy = False
-        app.cur_fun_callback = None
+        print("stage 1")
+        app.cur_fun_stage = 2
+        app.cur_fun_callback = plc_refresh
         data_massa = app.message_received[7:15]
         data_recheio = app.message_received[15:23]
-        app.lbl_numero_descargas_massa.setText(int(data_massa, 16))
-        app.lbl_numero_descargas_recheio.setText(int(data_recheio, 16))
-
-
-def plc_counter_recheio(stage, app, flag):
-    mem_number = "00020002"  # read 2 bytes
-    if ((app.cur_fun_busy == False) and (stage == 0)):
-        app.txt_logger.append("PLC Counter recheio:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
+        data_hours = app.message_received[23:31]
+        integer = int(data_hours, 16)
+        app.lbl_horas_trabalho.setText(str(round(integer / 60)))
+        app.lbl_numero_descargas_massa.setText(str(int(data_massa, 16)))
+        app.lbl_numero_descargas_recheio.setText(str(int(data_recheio, 16)))
+        mem_temp = "0105"
+        app.txt_logger.append("PLC Temperatura Forno:")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_temp + "0001")
         app.send_message()
+    elif stage == 2:
+        print("stage 2")
         app.cur_fun_busy = True
-        app.cur_fun_callback = plc_counter_recheio
-        app.cur_fun_stage = 1
-        app.cur_fun_flag = flag
-    elif stage == 1:
+        app.cur_fun_stage = 3
+        app.cur_fun_callback = plc_refresh
+        data = app.message_received[7:11]
+        integer = str(int(data, 16))
+        app.lbl_valor_temperatura.setText(integer)
+        app.txt_logger.append("PLC Alarmes:")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "0095" + "0001")
+        app.send_message()
+    elif stage == 3:
         app.cur_fun_busy = False
         app.cur_fun_callback = None
-        data = app.message_received[7:15]
+        app.cur_fun_stage = 0
+        data = app.message_received[7:11]
         integer = int(data, 16)
-        app.lbl_numero_descargas_recheio.setText(integer)
+        alarme_massa = pow(2, 5) & integer
+        alarme_recheio = pow(2, 6) & integer
+        alarme_temp = pow(2, 7) & integer
+        if alarme_massa > 0:
+            app.lbl_estado_massa.setPixmap(QPixmap(":/state_lights/images/red.png"))
+        else:
+            app.lbl_estado_massa.setPixmap(QPixmap(":/state_lights/images/green.png"))
+        if alarme_recheio > 0:
+            app.lbl_estado_recheio.setPixmap(QPixmap(":/state_lights/images/red.png"))
+        else:
+            app.lbl_estado_recheio.setPixmap(QPixmap(":/state_lights/images/green.png"))
+        if alarme_temp > 0:
+            app.lbl_estado_temperatura.setPixmap(QPixmap(":/state_lights/images/red.png"))
+        else:
+            app.lbl_estado_temperatura.setPixmap(QPixmap(":/state_lights/images/green.png"))
 
 
 '''
@@ -357,54 +368,6 @@ def plc_current_state(stage, app, flag):
         app.lbl_estado_atual.setText(integer)
 
 
-def plc_temperatura_forno(stage, app, flag):
-    mem_number = "0105"
-    if (app.cur_fun_busy == False) and (stage == 0):
-        app.txt_logger.append("PLC Temperatura Forno:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
-        app.send_message()
-        app.cur_fun_busy = True
-        app.cur_fun_callback = plc_temperatura_forno
-        app.cur_fun_stage = 1
-        app.cur_fun_flag = flag
-    elif stage == 1:
-        app.cur_fun_busy = False
-        app.cur_fun_callback = None
-        data = app.message_received[7:11]
-        integer = int(data, 16)
-        app.lbl_valor_temperatura.setText(integer)
-
-
-def plc_alarmes(stage, app, flag):
-    mem_number = "0095"  # read 2 bytes
-    if (app.cur_fun_busy == False) and (stage == 0):
-        app.txt_logger.append("PLC Alarmes:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
-        app.send_message()
-        app.cur_fun_busy = True
-        app.cur_fun_callback = plc_alarmes
-        app.cur_fun_stage = 1
-        app.cur_fun_flag = flag
-    elif stage == 1:
-        app.cur_fun_busy = False
-        app.cur_fun_callback = None
-        data = app.message_received[7:15]
-        integer = int(data, 16)
-        alarme_massa = pow(2, 5) & integer
-        alarme_recheio = pow(2, 6) & integer
-        ãlarme_temp = pow(2, 7) & integer
-        if alarme_massa > 0:
-            app.lbl_estado_massa.setPixmap(QPixmap(":/state_lights/images/red.png"))
-        else:
-            app.lbl_estado_massa.setPixmap(QPixmap(":/state_lights/images/green.png"))
-        if alarme_recheio > 0:
-            app.lbl_estado_recheio.setPixmap(QPixmap(":/state_lights/images/red.png"))
-        else:
-            app.lbl_estado_recheio.setPixmap(QPixmap(":/state_lights/images/green.png"))
-        if alarme_recheio > 0:
-            app.lbl_estado_temperatura.setPixmap(QPixmap(":/state_lights/images/red.png"))
-        else:
-            app.lbl_estado_temperatura.setPixmap(QPixmap(":/state_lights/images/green.png"))
 
 
 def list_ports():
@@ -552,3 +515,10 @@ def plc_selector_bolacha_NOK(stage, app, flag):
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
                                                    mem_number + format(integer, "X").zfill(4))
         app.send_message()
+
+
+def refresh_interface(app):
+    plc_refresh(0, app, True)
+    # print("antes timer")
+    # time.sleep(1)
+    # print("depois timer")

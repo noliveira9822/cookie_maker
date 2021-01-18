@@ -48,7 +48,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>3</number>
       </property>
       <property name="elideMode">
        <enum>Qt::ElideLeft</enum>
@@ -932,7 +932,11 @@
               </widget>
              </item>
              <item>
-              <widget class="QSpinBox" name="spin_tempo_atualizacao"/>
+              <widget class="QSpinBox" name="spin_tempo_atualizacao">
+               <property name="maximum">
+                <number>9999999</number>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
