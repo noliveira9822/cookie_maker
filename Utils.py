@@ -192,7 +192,7 @@ def plc_seletor_bolacha_OK(stage, app, flag):
     mem_number = "0095"
     mem_pos = 3
     if (app.cur_fun_busy == False) and (stage == 0):
-        app.txt_logger.append("PLC Seletor Bolacha:")
+        app.txt_logger.append("PLC Seletor Bolacha OK:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
@@ -215,51 +215,15 @@ def plc_seletor_bolacha_OK(stage, app, flag):
                                                    mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
-
-# function to control ok and nok cookies
-def bolacha_insp(stage, app, resultado):
-    plc_cookie_ok_nok(0, app, resultado)
-    plc_cookie_inspection_end(0, app, True)
-    time.sleep(0.1)
-    plc_cookie_inspection_end(0, app, False)
-
-
-def plc_cookie_ok_nok(stage, app, flag):
-    mem_number = "0090"
-    mem_pos = 7
-    if (app.cur_fun_busy == False) and (stage == 0):
-        app.txt_logger.append("PLC Bolacha OK NOK:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
-        app.send_message()
-        app.cur_fun_busy = True
-        app.cur_fun_callback = plc_cookie_ok_nok
-        app.cur_fun_stage = 1
-        app.cur_fun_flag = flag
-    elif stage == 1:
-        app.cur_fun_busy = False
-        app.cur_fun_callback = None
-        data = app.message_received[7:11]
-        integer = int(data, 16)
-        mask = pow(2, mem_pos)
-        if flag:
-            integer = integer | mask
-        else:
-            integer = integer & ~mask
-
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
-                                                   mem_number + format(integer, "X").zfill(4))
-        app.send_message()
-
-
-def plc_cookie_inspection_end(stage, app, flag):
-    mem_number = "0090"
+def plc_selector_bolacha_NOK(stage, app, flag):
+    mem_number = "0095"
     mem_pos = 8
-    if ((app.cur_fun_busy == False) and (stage == 0)):
-        app.txt_logger.append("PLC Inspeção Completa:")
+    if (app.cur_fun_busy == False) and (stage == 0):
+        app.txt_logger.append("PLC Seletor Bolacha NOK:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
         app.send_message()
         app.cur_fun_busy = True
-        app.cur_fun_callback = plc_cookie_inspection_end
+        app.cur_fun_callback = plc_selector_bolacha_NOK
         app.cur_fun_stage = 1
         app.cur_fun_flag = flag
     elif stage == 1:
@@ -278,12 +242,89 @@ def plc_cookie_inspection_end(stage, app, flag):
                                                    mem_number + format(integer, "X").zfill(4))
         app.send_message()
 
+# function to control ok and nok cookies
+def bolacha_insp(stage, app, resultado):
+    mem_number = "0090"
+    if (app.cur_fun_busy == False) and (stage == 0):
+        app.cur_fun_busy = True
+        app.cur_fun_callback = bolacha_insp
+        app.cur_fun_stage = 1
+        app.cur_fun_flag = resultado
+        if resultado:
+            app.txt_logger.append("PLC Bolacha OK:")
+        else:
+            app.txt_logger.append("PLC Bolacha NOK:")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
+        app.send_message()
+
+    elif stage == 1:  # send the result bit to the plc
+        app.cur_fun_busy = True
+        app.cur_fun_callback = bolacha_insp
+        app.cur_fun_stage = 2
+        app.cur_fun_flag = resultado
+
+        data = app.message_received[7:11]
+        integer = int(data, 16)
+        mask = pow(2, 7)
+        if resultado:
+            integer = integer | mask
+        else:
+            integer = integer & ~mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   mem_number + format(integer, "X").zfill(4))
+        app.send_message()
+
+    elif stage == 2:  # read the memory from the PLC
+        app.cur_fun_busy = True
+        app.cur_fun_callback = bolacha_insp
+        app.cur_fun_stage = 3
+
+        app.txt_logger.append("PLC Inspeção Completa Enable:")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
+        app.send_message()
+
+    elif stage == 3:  # write the memory with the inspection complete flag
+        app.cur_fun_busy = True
+        app.cur_fun_callback = bolacha_insp
+        app.cur_fun_stage = 4
+
+        data = app.message_received[7:11]
+        integer = int(data, 16)
+        mask = pow(2, 8)
+        integer = integer | mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   mem_number + format(integer, "X").zfill(4))
+        app.send_message()
+
+    elif stage == 4:  # read the memory again
+        app.cur_fun_busy = True
+        app.cur_fun_callback = bolacha_insp
+        app.cur_fun_stage = 5
+
+        app.txt_logger.append("PLC Inspeção Completa Disable:")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
+        app.send_message()
+
+    elif stage == 5:  # place the inspection complete flag back to zero
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        app.cur_fun_stage = 0
+
+        data = app.message_received[7:11]
+        integer = int(data, 16)
+        mask = pow(2, 8)
+        integer = integer & ~mask
+
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "WD",
+                                                   mem_number + format(integer, "X").zfill(4))
+        app.send_message()
+
 
 '''
 Functions for maintenance
 '''
-
-
 
 
 def plc_refresh(stage, app, flag):
@@ -297,7 +338,6 @@ def plc_refresh(stage, app, flag):
         app.cur_fun_stage = 1
         app.cur_fun_flag = flag
     elif stage == 1:
-        print("stage 1")
         app.cur_fun_stage = 2
         app.cur_fun_callback = plc_refresh
         data_massa = app.message_received[7:15]
@@ -319,7 +359,6 @@ def plc_refresh(stage, app, flag):
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_temp + "0001")
         app.send_message()
     elif stage == 2:
-        print("stage 2")
         app.cur_fun_busy = True
         app.cur_fun_stage = 3
         app.cur_fun_callback = plc_refresh
@@ -366,6 +405,7 @@ def plc_refresh(stage, app, flag):
 '''
 Function for normal modes
 '''
+
 
 def list_ports():
     '''
