@@ -287,9 +287,9 @@ Functions for maintenance
 
 
 def plc_refresh(stage, app, flag):
-    mem_number = "00000006"  # read 2 bytes
+    mem_number = "00000012"  # read 6 registers =  12 words
     if (app.cur_fun_busy == False) and (stage == 0):
-        app.txt_logger.append("PLC Counters:")
+        app.txt_logger.append("PLC Ler Counters:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RH", mem_number)
         app.send_message()
         app.cur_fun_busy = True
@@ -303,9 +303,16 @@ def plc_refresh(stage, app, flag):
         data_massa = app.message_received[7:15]
         data_recheio = app.message_received[15:23]
         data_hours = app.message_received[23:31]
-        integer = int(data_hours, 16)
-        app.lbl_horas_trabalho.setText(str(round(integer / 60)))
+        data_man_massa = app.message_received[31:39]
+        data_man_recheio = app.message_received[39:47]
+        data_man_hours = app.message_received[47:55]
+        horas_count = int(data_hours, 16)
+        horas_manutencao = int(data_man_hours, 16)
+        app.lbl_horas_trabalho.setText(str(round(horas_count / 60)))
+        app.lbl_horas_manutencao.setText(str(round(horas_manutencao / 60)))
         app.lbl_numero_descargas_massa.setText(str(int(data_massa, 16)))
+        app.lbl_massa_manutencao.setText(str(int(data_man_massa, 16)))
+        app.lbl_recheio_manutencao.setText(str(int(data_man_recheio, 16)))
         app.lbl_numero_descargas_recheio.setText(str(int(data_recheio, 16)))
         mem_temp = "0105"
         app.txt_logger.append("PLC Temperatura Forno:")
@@ -319,13 +326,13 @@ def plc_refresh(stage, app, flag):
         data = app.message_received[7:11]
         integer = str(int(data, 16))
         app.lbl_valor_temperatura.setText(integer)
-        app.txt_logger.append("PLC Alarmes:")
+        app.txt_logger.append("PLC Ler Alarmes:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "0095" + "0001")
         app.send_message()
     elif stage == 3:
-        app.cur_fun_busy = False
-        app.cur_fun_callback = None
-        app.cur_fun_stage = 0
+        app.cur_fun_busy = True
+        app.cur_fun_stage = 4
+        app.cur_fun_callback = plc_refresh
         data = app.message_received[7:11]
         integer = int(data, 16)
         alarme_massa = pow(2, 5) & integer
@@ -344,31 +351,21 @@ def plc_refresh(stage, app, flag):
         else:
             app.lbl_estado_temperatura.setPixmap(QPixmap(":/state_lights/images/green.png"))
 
+        app.txt_logger.append("PLC Estado Atual:")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "0000" + "0001")
+        app.send_message()
+
+    elif stage == 4:
+        app.cur_fun_busy = False
+        app.cur_fun_callback = None
+        app.cur_fun_stage = 0
+        data = app.message_received[7:11]
+        app.lbl_estado_atual.setText(str(int(data, 16)))
+
 
 '''
 Function for normal modes
 '''
-
-
-def plc_current_state(stage, app, flag):
-    mem_number = "0000"
-    if ((app.cur_fun_busy == False) and (stage == 0)):
-        app.txt_logger.append("PLC Estado Atual:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_number + "0001")
-        app.send_message()
-        app.cur_fun_busy = True
-        app.cur_fun_callback = plc_current_state
-        app.cur_fun_stage = 1
-        app.cur_fun_flag = flag
-    elif stage == 1:
-        app.cur_fun_busy = False
-        app.cur_fun_callback = None
-        data = app.message_received[7:11]
-        integer = int(data, 16)
-        app.lbl_estado_atual.setText(integer)
-
-
-
 
 def list_ports():
     '''
