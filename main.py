@@ -8,14 +8,13 @@ import cv2
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QPushButton, QHBoxLayout, QLineEdit, QComboBox, \
-    QLabel, QPlainTextEdit, QErrorMessage
 
 from qasync import QEventLoop
 from functools import wraps
 
 from serial_asyncio import create_serial_connection
 
+import PLC_Comms
 import Utils
 from ui_files import resources
 
@@ -87,7 +86,7 @@ def startVideo():
     window.btn_start.setEnabled(False)
     window.btn_stop.setEnabled(True)
     # serial tcommunitaction to enable automatic mode
-    Utils.plc_modo_automatico_msg(0, window, 1)
+    PLC_Comms.plc_modo_automatico_msg(0, window, 1)
 
 
 def stopVideo():
@@ -98,7 +97,7 @@ def stopVideo():
     window.btn_stop.setEnabled(False)
     window.lbl_image.setPixmap(QPixmap(Utils.CAMERA_CLOSED_IMAGE))
     # serial tcommunitaction to disable automatic mode
-    Utils.plc_modo_automatico_msg(0, window, 0)
+    PLC_Comms.plc_modo_automatico_msg(0, window, 0)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -133,8 +132,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.btn_clear_log.clicked.connect(lambda: self.txt_logger.setText(""))
         # automatico
         # the lambda is here because the function needs to be callable
-        self.btn_bolacha_ok.clicked.connect(lambda: Utils.bolacha_insp(self, True))
-        self.btn_bolacha_not_ok.clicked.connect(lambda: Utils.bolacha_insp(self, False))
+        self.btn_bolacha_ok.clicked.connect(lambda: PLC_Comms.bolacha_insp(self, True))
+        self.btn_bolacha_not_ok.clicked.connect(lambda: PLC_Comms.bolacha_insp(self, False))
         # serial
         Utils.setup_serial(self)
 
@@ -142,18 +141,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.btn_disconnect.clicked.connect(self.close_port)
 
         # manual
-        self.btn_activar_massa.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0, self, True))
-        self.btn_desactivar_massa.clicked.connect(lambda: Utils.plc_dispensador_massa_msg(0, self, False))
-        self.btn_ativar_recheio.clicked.connect(lambda: Utils.plc_dispensador_recheio_msg(0, self, True))
-        self.btn_desativar_recheio.clicked.connect(lambda: Utils.plc_dispensador_recheio_msg(0, self, False))
-        self.btn_ativar_tapete.clicked.connect(lambda: Utils.plc_tapete_msg(0, self, True))
-        self.btn_desativar_tapete.clicked.connect(lambda: Utils.plc_tapete_msg(0, self, False))
-        self.btn_ativar_saida_forno.clicked.connect(lambda: Utils.plc_forno_msg(0, self, True))
-        self.btn_desativar_saida_forno.clicked.connect(lambda: Utils.plc_forno_msg(0, self, False))
-        self.btn_ativar_separador_OK.clicked.connect(lambda: Utils.plc_seletor_bolacha_OK(0, self, True))
-        self.btn_desativar_separador_OK.clicked.connect(lambda: Utils.plc_seletor_bolacha_OK(0, self, False))
-        self.btn_ativar_separador_NOK.clicked.connect(lambda: Utils.plc_selector_bolacha_NOK(0, self, True))
-        self.btn_desativar_separador_NOK.clicked.connect(lambda: Utils.plc_selector_bolacha_NOK(0, self, False))
+        self.btn_activar_massa.clicked.connect(lambda: PLC_Comms.plc_dispensador_massa_msg(0, self, True))
+        self.btn_desactivar_massa.clicked.connect(lambda: PLC_Comms.plc_dispensador_massa_msg(0, self, False))
+        self.btn_ativar_recheio.clicked.connect(lambda: PLC_Comms.plc_dispensador_recheio_msg(0, self, True))
+        self.btn_desativar_recheio.clicked.connect(lambda: PLC_Comms.plc_dispensador_recheio_msg(0, self, False))
+        self.btn_ativar_tapete.clicked.connect(lambda: PLC_Comms.plc_tapete_msg(0, self, True))
+        self.btn_desativar_tapete.clicked.connect(lambda: PLC_Comms.plc_tapete_msg(0, self, False))
+        self.btn_ativar_saida_forno.clicked.connect(lambda: PLC_Comms.plc_forno_msg(0, self, True))
+        self.btn_desativar_saida_forno.clicked.connect(lambda: PLC_Comms.plc_forno_msg(0, self, False))
+        self.btn_ativar_separador_OK.clicked.connect(lambda: PLC_Comms.plc_seletor_bolacha_OK(0, self, True))
+        self.btn_desativar_separador_OK.clicked.connect(lambda: PLC_Comms.plc_seletor_bolacha_OK(0, self, False))
+        self.btn_ativar_separador_NOK.clicked.connect(lambda: PLC_Comms.plc_selector_bolacha_NOK(0, self, True))
+        self.btn_desativar_separador_NOK.clicked.connect(lambda: PLC_Comms.plc_selector_bolacha_NOK(0, self, False))
 
         # show interface
         self.show()
@@ -172,8 +171,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.cur_fun_callback(self.cur_fun_stage, self, self.cur_fun_flag)
         else:
             print("none")
-
-
 
     @slot_coroutine
     async def open_port(self):
@@ -197,7 +194,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.btn_connect.setDisabled(True)
         self.btn_disconnect.setDisabled(False)
-        Utils.plc_monitor_mode_msg(window)
+        PLC_Comms.plc_monitor_mode_msg(window)
         refresh_timer.start(self.spin_tempo_atualizacao.value())
 
     def close_port(self):
@@ -222,7 +219,7 @@ if __name__ == "__main__":
     window.show()
 
     refresh_timer = QTimer()
-    refresh_timer.timeout.connect(lambda: Utils.refresh_interface(window))
+    refresh_timer.timeout.connect(lambda: PLC_Comms.refresh_interface(window))
 
     videoThread = None
     print("All initialized")
