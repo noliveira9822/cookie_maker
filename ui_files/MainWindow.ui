@@ -48,7 +48,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <property name="elideMode">
        <enum>Qt::ElideLeft</enum>
@@ -160,28 +160,45 @@
                   <item>
                    <widget class="QLabel" name="label_12">
                     <property name="text">
-                     <string>NÍVEL  MASSA</string>
+                     <string>NÍVEL &amp; TIPO MASSA </string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLabel" name="lbl_estado_massa">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="pixmap">
-                     <pixmap>:/state_lights/green.png</pixmap>
-                    </property>
-                    <property name="scaledContents">
-                     <bool>false</bool>
-                    </property>
-                    <property name="wordWrap">
-                     <bool>false</bool>
-                    </property>
-                    <property name="openExternalLinks">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
+                   <layout class="QHBoxLayout" name="horizontalLayout_30">
+                    <item>
+                     <widget class="QLabel" name="lbl_estado_massa">
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="pixmap">
+                       <pixmap>:/state_lights/green.png</pixmap>
+                      </property>
+                      <property name="scaledContents">
+                       <bool>false</bool>
+                      </property>
+                      <property name="wordWrap">
+                       <bool>false</bool>
+                      </property>
+                      <property name="openExternalLinks">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="lbl_tipo_massa">
+                      <property name="layoutDirection">
+                       <enum>Qt::LeftToRight</enum>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </item>
                  </layout>
                 </item>
@@ -190,19 +207,33 @@
                   <item>
                    <widget class="QLabel" name="label_13">
                     <property name="text">
-                     <string>NÍVEL  RECHEIO</string>
+                     <string>NÍVEL &amp; TIPO RECHEIO</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLabel" name="lbl_estado_recheio">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="pixmap">
-                     <pixmap>:/state_lights/yellow.png</pixmap>
-                    </property>
-                   </widget>
+                   <layout class="QHBoxLayout" name="horizontalLayout_31">
+                    <item>
+                     <widget class="QLabel" name="lbl_estado_recheio">
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="pixmap">
+                       <pixmap>:/state_lights/yellow.png</pixmap>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="lbl_tipo_recheio">
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </item>
                  </layout>
                 </item>
@@ -634,7 +665,7 @@
           <item>
            <widget class="QLabel" name="label_17">
             <property name="text">
-             <string>Horas de trabalho</string>
+             <string>Horas de trabalho:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -689,7 +720,7 @@
           <item>
            <widget class="QLabel" name="label_18">
             <property name="text">
-             <string>Número de descargas Massa</string>
+             <string>Número de descargas Massa:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -744,7 +775,7 @@
           <item>
            <widget class="QLabel" name="label_19">
             <property name="text">
-             <string>Número descargas Recheio</string>
+             <string>Número descargas Recheio:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>

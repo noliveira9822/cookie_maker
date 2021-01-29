@@ -317,19 +317,33 @@ def plc_refresh(stage, app, flag):
         app.lbl_horas_manutencao.setText(str(round(horas_manutencao / 60)))
         app.lbl_numero_descargas_massa.setText(str(int(data_massa, 16)))
         app.lbl_massa_manutencao.setText(str(int(data_man_massa, 16)))
-        app.lbl_recheio_manutencao.setText(str(int(data_man_recheio, 16)))
         app.lbl_numero_descargas_recheio.setText(str(int(data_recheio, 16)))
-        mem_temp = "0105"
+        app.lbl_recheio_manutencao.setText(str(int(data_man_recheio, 16)))
+        #mem_temp = "0105"
+        massa_type = "0100"
         app.txt_logger.append("PLC Temperatura Forno:")
-        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", mem_temp + "0001")
+        app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", massa_type + "0006")
         app.send_message()
     elif stage == 2:
         app.cur_fun_busy = True
         app.cur_fun_stage = 3
         app.cur_fun_callback = plc_refresh
-        data = app.message_received[7:11]
-        integer = str(int(data, 16))
-        app.lbl_valor_temperatura.setText(integer)
+
+        data_massa = app.message_received[7:11]
+        tipo_massa = str(int(data_massa, 16))
+        app.lbl_tipo_massa.setText(tipo_massa)
+
+        data_rech = app.message_received[11:15]
+        tipo_rech = str(int(data_rech, 16))
+        app.lbl_tipo_recheio.setText(tipo_rech)
+
+        temp_target = app.message_received[15:19]
+        target = str(int(temp_target, 16))
+
+        data_tmp = app.message_received[27:31]
+        tipo_tmp = str(int(data_tmp, 16))
+        app.lbl_valor_temperatura.setText(tipo_tmp)
+
         app.txt_logger.append("PLC Ler Alarmes:")
         app.message_to_send = HLNK_calculate_frame(app.edt_num_plc.text(), "RD", "0095" + "0001")
         app.send_message()
